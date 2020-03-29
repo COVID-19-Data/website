@@ -156,9 +156,7 @@ u-font-normal u-font-bold">Browse</h2>
 <div class="c-comments ">
   <div class="u-bg-gray-30 u-pt-8 u-pb-4">
     <div class="o-container">
-      <div class="o-row u-mb-5">
-        <div id="search_results"></div>
-
+      <div class="o-row u-mb-12" id="search_results">
         <!-- /.o-row -->
       </div>
     </div>
@@ -169,30 +167,40 @@ u-font-normal u-font-bold">Browse</h2>
   ></script>
   <script defer="defer">
     $(document).ready(function() {
-      console.log("hi");
       var url = "https://metadata.getcovid19data.com/sources";
       jQuery.ajax({
         url: url,
         success: function(res) {
           res.forEach(function(item, index) {
             console.log(item);
-
-            $("#search_results").append(`
-            <div class="o-col-12@md o-col-12@lg u-mb-12">
-            <div class="c-feature-card">
-              <div class="c-feature-card__content">
-                <h4 class="c-feature-card__title">${item.name} </h4>
-                <p>${item.description}</p>
+            var sources = "";
+            item.links.forEach(function(link, linkIndex) {
+              sources += `
                 <a
                     target="_blank"
-                    href="${item.links[0].href}"
-                    class="c-btn c-btn--gray c-btn--lg u-text-md u-mr-1 u-mb-2"
+                    href="${link.href}"
+                    
                     >
-                    Source
-                    <div class="c-btn__icon">
-                        <i class="o-icon o-icon--link"></i>
-                    </div>
-                    </a>
+                    source ${linkIndex + 1}
+                    
+                    </a><br/>  
+                    `;
+            });
+            var date = new Date(item.updated_at);
+            $("#search_results").append(`
+            <div class="o-col-10@md o-col-10@lg o-offset-1@md u-mb-12">
+            <div class="c-feature-card c-feature-card-border">
+              <div class="c-feature-card__content">
+                <h4 style='margin-bottom:3px;'>${item.name} </h4>
+                <p><strong>Organisation: ${
+                  item.authority.name
+                }</strong><br/><i>Last updated: ${date.toLocaleString()}</i></p>
+                
+                <p><strong>Description</strong><br/>${item.description}</p>
+                <p><strong>source links</strong><br/>
+                ${sources}
+                </p>
+                
               </div>
               <!-- /.c-featured-card__content -->
             </div>
@@ -201,6 +209,17 @@ u-font-normal u-font-bold">Browse</h2>
           <!-- /.o-col -->
         </div>
             `);
+            // <div>
+            //         <a
+            //         target="_blank"
+            //         href="${item.links[0].href}"
+            //         class="c-btn c-btn--gray u-text-md u-mr-1 u-mb-2"
+            //         >
+            //         Add source
+            //         <div class="c-btn__icon">
+            //             <i class="o-icon o-icon--plus-square"></i>
+            //         </div>
+            //         </a></div>
           });
         }
       });
