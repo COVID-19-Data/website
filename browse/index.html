@@ -64,7 +64,7 @@ u-text-white">
         <div class="o-container">
           <div class="o-row">
             <div class="o-col-12">
-              <div class="u-flex u-items-center">
+              <div class="u-flex u-sources-center">
                  
                 <p class="c-logo u-mb-0 js-logo">
                   <a
@@ -75,7 +75,7 @@ u-text-white">
                 </p>
                 <!-- /.c-logo -->
                   
-                <div class="u-flex u-items-center u-ml-auto">
+                <div class="u-flex u-sources-center u-ml-auto">
                   
                   <ul class="c-nav u-mb-0 u-hidden u-block@lg">
                      
@@ -140,7 +140,7 @@ js-offcanvas-toggle u-ml-auto u-hidden@lg" type="button">
 u-font-normal u-font-bold">Browse</h2>
            
           <div class="u-h5">
-            <p>Here you'll find a list of data sources on COVID-19, each item contains a description and a link to the source, if a source is converted to CSV, it will have a download link. If you'd like a source to be converted to CSV for download by one of our volunteers, please upvote that source.</p>
+            <p>Here you'll find a list of data sources on COVID-19, each source contains a description and a link to the source, if a source is converted to CSV, it will have a download link. If you'd like a source to be converted to CSV for download by one of our volunteers, please upvote that source.</p>
           </div>
             
         </div>
@@ -162,64 +162,46 @@ u-font-normal u-font-bold">Browse</h2>
     </div>
   </div>
   <script
-    src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.1/jquery.min.js"
     type="text/javascript"
   ></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/1.30.1/date_fns.min.js"></script>
   <script defer="defer">
     $(document).ready(function() {
       var url = "https://metadata.getcovid19data.com/sources";
       jQuery.ajax({
         url: url,
-        success: function(res) {
-          res.forEach(function(item, index) {
-            console.log(item);
-            var sources = "";
-            item.links.forEach(function(link, linkIndex) {
-              sources += `
-                <a
-                    target="_blank"
-                    href="${link.href}"
-                    
-                    >
-                    source ${linkIndex + 1}
-                    
-                    </a><br/>  
-                    `;
+        success: function(sources) {
+          sources.forEach(function(source, index) {
+            jQuery.ajax({
+              url: `https://metadata.getcovid19data.com/links/${source.authority.link}`,
+              success: function(authorityLink) {
+                console.log(source);
+
+                var sourceLinks = source.links.map(function(link, linkIndex) {
+                  return `<a target="_blank" href="${link.href}" rel="noopener, noreferer">${link.href}</a>`;
+                }).join('<br/>') || 'No links available';
+
+                $("#search_results").append(`
+                  <div class="o-col-10@md o-col-10@lg o-offset-1@md u-mb-12">
+                    <div class="c-feature-card c-feature-card-border">
+                      <div class="c-feature-card__content">
+                        <h4 style='margin-bottom:3px;'>${source.name} </h4>
+                        <span style="font-size: 14px; color: #6f767d;">Published by <a href="${authorityLink.href}" rel="noopener, noreferer" target="_blank">${source.authority.name}</a>, metadata updated ${dateFns.distanceInWordsToNow(new Date(source.updated_at))} ago</span>
+                        <p style="margin: 12px 0">${source.description}</p>
+                        <p>
+                          <strong>Source links</strong><br/>
+                          ${sourceLinks}<br/>
+                        </p>
+                      </div>
+                      <!-- /.c-featured-card__content -->
+                    </div>
+                    <!-- /.c-feature-card -->
+                  </div>
+                  <!-- /.o-col -->`
+                );
+              }
             });
-            var date = new Date(item.updated_at);
-            $("#search_results").append(`
-            <div class="o-col-10@md o-col-10@lg o-offset-1@md u-mb-12">
-            <div class="c-feature-card c-feature-card-border">
-              <div class="c-feature-card__content">
-                <h4 style='margin-bottom:3px;'>${item.name} </h4>
-                <p><strong>Organisation: ${
-                  item.authority.name
-                }</strong><br/><i>Last updated: ${date.toLocaleString()}</i></p>
-                
-                <p><strong>Description</strong><br/>${item.description}</p>
-                <p><strong>source links</strong><br/>
-                ${sources}
-                </p>
-                
-              </div>
-              <!-- /.c-featured-card__content -->
-            </div>
-            <!-- /.c-feature-card -->
-          </div>
-          <!-- /.o-col -->
-        </div>
-            `);
-            // <div>
-            //         <a
-            //         target="_blank"
-            //         href="${item.links[0].href}"
-            //         class="c-btn c-btn--gray u-text-md u-mr-1 u-mb-2"
-            //         >
-            //         Add source
-            //         <div class="c-btn__icon">
-            //             <i class="o-icon o-icon--plus-square"></i>
-            //         </div>
-            //         </a></div>
           });
         }
       });
